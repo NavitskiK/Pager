@@ -1,28 +1,19 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
 
-contract Lock {
-    uint public unlockTime;
-    address payable public owner;
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
-    event Withdrawal(uint amount, uint when);
+contract MyToken is ERC721 {
+    using Counters for Counters.Counter;
 
-    constructor(uint _unlockTime) payable {
-        require(
-            block.timestamp < _unlockTime,
-            "Unlock time should be in the future"
-        );
+    Counters.Counter private _tokenIdCounter;
 
-        unlockTime = _unlockTime;
-        owner = payable(msg.sender);
-    }
+    constructor() ERC721("MyToken", "MTK") {}
 
-    function withdraw() public {
-        require(block.timestamp >= unlockTime, "You can't withdraw yet");
-        require(msg.sender == owner, "You aren't the owner");
-
-        emit Withdrawal(address(this).balance, block.timestamp);
-
-        owner.transfer(address(this).balance);
+    function safeMint() external {
+        uint256 tokenId = _tokenIdCounter.current();
+        _tokenIdCounter.increment();
+        _safeMint(msg.sender, tokenId);
     }
 }
